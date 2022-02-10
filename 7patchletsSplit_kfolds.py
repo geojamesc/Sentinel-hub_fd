@@ -14,10 +14,8 @@ split_config = SplitConfig(
     aws_access_key_id='',
     aws_secret_access_key='',
     aws_region='',
-    #metadata_path='input-data/patchlet-info.csv',
-    metadata_path='input-data/patchlet-infoJRCC.csv',
-    #npz_folder='input-data/patchlets_npz',
-    npz_folder='input-data/patchletsJRCC_npz',
+    metadata_path='input-data/patchlet-info.csv',
+    npz_folder='input-data/patchlets_npz',
     n_folds=3
 ) #Too small area for more?
 
@@ -34,8 +32,9 @@ np.random.seed(seed=split_config.seed)
 
 print('len(eops): ', len(eops))
 print('split_config.n_folds: ', split_config.n_folds)
-#fold = np.random.randint(1, high=split_config.n_folds+1, size=len(eops))
 
+# this seems to often generate a set of values with duplicates
+#fold = np.random.randint(1, high=split_config.n_folds+1, size=len(eops))
 fold = np.array([3, 1, 2])
 
 print('fold: ', fold)
