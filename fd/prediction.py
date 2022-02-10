@@ -243,7 +243,6 @@ def run_prediction_on_eopatch(eopatch_name: str, config: PredictionConfig,
 
     load_task = LoadTask(
         #path=f's3://{config.bucket_name}/{config.eopatches_folder}',
-        #path='/home/james/Work/FieldBoundaries/Sentinel-hub_fd/input-data/eopatchesJRCC',
         path=f'{config.eopatches_folder}',
         features=[config.feature_bands,
                   config.reference_distance, config.reference_extent, config.reference_boundary,
@@ -254,7 +253,6 @@ def run_prediction_on_eopatch(eopatch_name: str, config: PredictionConfig,
 
     save_task = SaveTask(
         #path=f's3://{config.bucket_name}/{config.eopatches_folder}',
-        #path='/home/james/Work/FieldBoundaries/Sentinel-hub_fd/input-data/eopatchesJRCC',
         path=f'{config.eopatches_folder}',
         features=[config.feature_extent, config.feature_boundary, config.feature_distance,
                   FeatureType.META_INFO],
