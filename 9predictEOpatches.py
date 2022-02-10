@@ -35,7 +35,7 @@ def prefect_processing():
     pass
 
 
-# 1. Workflow configuration set-up
+# [1] Workflow configuration set-up
 INPUT_DATA_DIR = Path('input-data/')
 
 model_version = 'folds_avg_10e'
@@ -45,12 +45,12 @@ prediction_config = PredictionConfig(
     aws_access_key_id='',
     aws_secret_access_key='',
     aws_region='',
-    eopatches_folder=os.path.realpath('input-data/eopatchesJRCC'),
+    eopatches_folder=os.path.realpath('input-data/eopatches'),
     feature_extent=(FeatureType.DATA, f'EXTENT_PREDICTED_{model_version}'),
     feature_boundary=(FeatureType.DATA, f'BOUNDARY_PREDICTED_{model_version}'),
     feature_distance=(FeatureType.DATA, f'DISTANCE_PREDICTED_{model_version}'),
     model_path=os.path.realpath('input-data/niva-cyl-models'),
-    model_name='resunet-a_avg_2022-02-09-11-35-40',
+    model_name='resunet-a_avg_2022-02-10-10-20-29',  #this is difft every time we run 8trainFromCache.py
     model_version=model_version,
     temp_model_path='',  # JRCC - we already have model held locally so not used
     normalise='to_medianstd',
@@ -58,13 +58,13 @@ prediction_config = PredictionConfig(
     width=1122,
     n_channels=4,
     n_classes=2,
-    metadata_path=os.path.realpath('input-data/patchlet-infoJRCC.csv'),
+    metadata_path=os.path.realpath('input-data/patchlet-info.csv'),
     batch_size=16)
 
 
 #filesystem = prepare_filesystem(prediction_config)
 
-# 2. Check the meta-data used for normalisation
+# [2] Check the meta-data used for normalisation
 
 #normalisation_factors = load_metadata(filesystem, prediction_config)
 normalisation_factors = load_metadata(prediction_config)
@@ -75,12 +75,13 @@ print(grid_definition.head())
 
 eopatches_list = grid_definition.name.values
 
-# 3. Load model
+# [3] Load model
 
 #model = load_model(filesystem=filesystem, config=prediction_config)
 model = load_model(prediction_config)
 
-# 4. Run predictions sequentially on all patches
+
+# [4] Run predictions sequentially on all patches
 
 status = process_eopatches(run_prediction_on_eopatch,
                            eopatches_list,
@@ -88,19 +89,25 @@ status = process_eopatches(run_prediction_on_eopatch,
                            model=model,
                            normalisation_factors=normalisation_factors)
 
-#with open('input-data/prediction_status.json', 'w') as outpf:
-#    json.dump(status, outpf)
+print('STATUS:')
+print('**************************')
+for s in status:
+    print('name: ', s['name'])
+    print('status: ', s['status'])
+print('**************************')
+
 
 status_df = pd.DataFrame(status)
-#print(status_df.head())
-#print(len(status_df), len(status_df[status_df.status=='Success']))
+print(status_df.head())
+print(len(status_df), len(status_df[status_df.status=='Success']))
 
-print('status:')
-for s in status:
-    print(s)
-
+print('Success:')
 print(status_df[status_df.status!='Success'])
+print('**************************')
 
+# [5] Check if files have been written
+
+print('HAVE FILES BEEN WRITTEN:')
 pred_files = [f'BOUNDARY_PREDICTED_{model_version}.npy',
               f'DISTANCE_PREDICTED_{model_version}.npy',
               f'EXTENT_PREDICTED_{model_version}.npy']
