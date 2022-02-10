@@ -20,12 +20,9 @@ config = CreateNpzConfig(
     aws_access_key_id='',
     aws_secret_access_key='',
     aws_region='',
-    #patchlets_folder='input-data/patchlets',
-    patchlets_folder='input-data/patchletsJRCC',
-    #output_folder='input-data/patchlets_npz',
-    output_folder='input-data/patchletsJRCC_npz',
-    #output_dataframe='input-data/patchlet-info.csv',
-    output_dataframe='input-data/patchlet-infoJRCC.csv',
+    patchlets_folder='input-data/patchlets',
+    output_folder='input-data/patchlets_npz',
+    output_dataframe='input-data/patchlet-info.csv',
     chunk_size=50)
     
 #filesystem = prepare_filesystem(config)
