@@ -20,10 +20,8 @@ config = ComputeNormalizationConfig(
     aws_access_key_id='',
     aws_secret_access_key='',
     aws_region='',
-    #npz_files_folder='input-data/patchlets_npz',
-    npz_files_folder='input-data/patchletsJRCC_npz',
-    #metadata_file='input-data/patchlet-info.csv'
-    metadata_file='input-data/patchlet-infoJRCC.csv')
+    npz_files_folder='input-data/patchlets_npz',
+    metadata_file='input-data/patchlet-info.csv')
 
 #filesystem = prepare_filesystem(config)
 
