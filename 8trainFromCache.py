@@ -1,6 +1,7 @@
-import os 
+import os
 import json
 import logging
+import shutil
 from functools import reduce
 from datetime import datetime
 from typing import Callable, Tuple, List
@@ -22,6 +23,8 @@ from fd.tf_viz_utils import ExtentBoundDistVisualizationCallback
 from fd.training import TrainingConfig, get_dataset
 from fd.utils import prepare_filesystem
 
+from fs.copy import copy_dir
+
 logging.getLogger('tensorflow').disabled = True
 logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
@@ -30,16 +33,15 @@ n_classes = 2
 batch_size = 8
 n_samples = 15000 # rough estimate
 
+
 training_config = TrainingConfig(
     bucket_name='',
     aws_access_key_id='',
     aws_secret_access_key='',
     aws_region='',
     wandb_id=None, # change this with your wandb account 
-    #npz_folder='input-data/patchlets_npz',
-    npz_folder='input-data/patchletsJRCC_npz',
-    #metadata_path='input-data/patchlet-info.csv',
-    metadata_path='input-data/patchlet-infoJRCC.csv',
+    npz_folder='input-data/patchlets_npz',
+    metadata_path='input-data/patchlet-info.csv',
     model_folder='input-data/niva-cyl-models',
     model_s3_folder='input-data',
     #chkpt_folder='input-data/pre-trained-model/checkpoints',
@@ -105,88 +107,14 @@ for nb in np.arange(4):
     
 plt.tight_layout()
 
-import os 
-import json
-import logging
-from functools import reduce
-from datetime import datetime
-from typing import Callable, Tuple, List
 
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-import matplotlib.pyplot as plt
-import wandb
-from wandb.keras import WandbCallback
-
-from eoflow.models.metrics import MCCMetric
-from eoflow.models.segmentation_base import segmentation_metrics
-from eoflow.models.losses import JaccardDistanceLoss, TanimotoDistanceLoss
-
-from eoflow.models.segmentation_unets import ResUnetA
-
-from fd.tf_viz_utils import ExtentBoundDistVisualizationCallback
-from fd.training import TrainingConfig, get_dataset
-from fd.utils import prepare_filesystem
 
 logging.getLogger('tensorflow').disabled = True
 logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
-n_classes = 2
-batch_size = 8
-n_samples = 15000 # rough estimate
 
-training_config = TrainingConfig(
-    bucket_name='',
-    aws_access_key_id='',
-    aws_secret_access_key='',
-    aws_region='',
-    wandb_id=None, # change this with your wandb account 
-    #npz_folder='input-data/patchlets_npz',
-    npz_folder='input-data/patchletsJRCC_npz',
-    #metadata_path='input-data/patchlet-info.csv',
-    metadata_path='input-data/patchlet-infoJRCC.csv',
-    model_folder='input-data/niva-cyl-models',
-    model_s3_folder='input-data',
-    #chkpt_folder='input-data/pre-trained-model/checkpoints',
-    input_shape=(256, 256, 4),
-    n_classes=n_classes,
-    batch_size=batch_size,
-    #iterations_per_epoch=n_samples//batch_size,
-    iterations_per_epoch=10,
-    #num_epochs=10,
-    num_epochs=5,
-    model_name='resunet-a',
-    reference_names=['extent','boundary','distance'],
-    augmentations_feature=['flip_left_right', 'flip_up_down', 'rotate', 'brightness'],
-    augmentations_label=['flip_left_right', 'flip_up_down', 'rotate'],
-    normalize='to_medianstd',
-    n_folds=3,
-    model_config={
-        'learning_rate': 0.0001,
-        'n_layers': 3,
-        'n_classes': n_classes,
-        'keep_prob': 0.8,
-        'features_root': 32,
-        'conv_size': 3,
-        'conv_stride': 1,
-        'dilation_rate': [1, 3, 15, 31],
-        'deconv_size': 2,
-        'add_dropout': True,
-        'add_batch_norm': False,
-        'use_bias': False,
-        'bias_init': 0.0,
-        'padding': 'SAME',
-        'pool_size': 3,
-        'pool_stride': 2,
-        'prediction_visualization': True,
-        'class_weights': None
-    }
-)
 
-#if training_config.wandb_id is not None:
-#    !wandb login {training_config.wandb_id}  # EOR
 
 ds_folds = [get_dataset(training_config, fold=fold, augment=True, randomize=True,
                         num_parallel=200, npz_from_s3=False) 
@@ -341,11 +269,7 @@ for training_ids, testing_id in folds_ids_list:
     
     del fold_val, folds_train, ds_train, ds_val
 
-from fs.copy import copy_dir
-
 #filesystem = prepare_filesystem(training_config)
-
-import shutil
 
 for model_path in model_paths:
     model_name = os.path.basename(model_path)
