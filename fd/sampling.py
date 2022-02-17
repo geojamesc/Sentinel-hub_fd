@@ -108,8 +108,30 @@ class SamplePatchlets(EOTask):
                 row = np.random.randint(self.buffer, n_rows - self.patch_size - self.buffer)
                 col = np.random.randint(self.buffer, n_cols - self.patch_size - self.buffer)
                 patchlet = mask[row:row + self.patch_size, col:col + self.patch_size]
+
+                # start of JRCC DEBUG
+                if np.all((patchlet ==0)):
+                    print('All values in patchlet are Zero!')
+                else:
+                    print('OK - patchlet contains non-Zero values.')
+                # end of JRCC DEBUG
+
                 ratio = np.sum(patchlet != self.no_data_value) / self.patch_size ** 2
                 retry_count += 1
+
+                # start of JRCC DEBUG
+                my_patchlet_loc = np.array([row, col, self.patch_size])
+                my_r, my_c, my_s = my_patchlet_loc
+                my_patchlet_bbox = BBox(((eopatch.bbox.min_x + self.S2_RESOLUTION * my_c,
+                                 eopatch.bbox.max_y - self.S2_RESOLUTION * (my_r + my_s)),
+                                (eopatch.bbox.min_x + self.S2_RESOLUTION * (my_c + my_s),
+                                 eopatch.bbox.max_y - self.S2_RESOLUTION * my_r)),
+                               eopatch.bbox.crs)
+                print('patchlet_info - patchlet_num: ', patchlet_num, 'row: ', row, 'col: ', col, 'ratio: ', ratio)
+                print('patchlet_info - BBOX of patchlet: ', my_patchlet_bbox)
+                print('\n')
+                # end of JRCC DEBUG
+
 
             if retry_count == self.max_retries:
                 LOGGER.warning(f'Could not determine an area with good enough ratio of valid sampled pixels for '
