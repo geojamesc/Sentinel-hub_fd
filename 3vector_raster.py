@@ -12,8 +12,7 @@ from eolearn.core import FeatureType, EOExecutor
 
 from fd.gsaa_to_eopatch import GsaaToEopatchConfig, get_gsaa_to_eopatch_workflow
 
-
-
+import warnings
 from fd.utils_plot import (draw_vector_timeless, 
                            draw_true_color, 
                            draw_bbox, 
@@ -45,23 +44,20 @@ gsaa_to_eops_config = GsaaToEopatchConfig(
 
 grid_definition = gpd.read_file(INPUT_DATA_DIR/'cyl-grid-definition.gpkg')
 
-
-
-
 eopatches_list = grid_definition.name.values
-eopatches_list[0]
+#eopatches_list[0]
+print('eopatches_list: ', eopatches_list)
+
 
 workflow = get_gsaa_to_eopatch_workflow(gsaa_to_eops_config)
 
 tasks = workflow.get_tasks()
 
-result = workflow.execute({
-    tasks['LoadTask']: {'eopatch_folder': '32VNH_1'},
-    tasks['SaveTask']: {'eopatch_folder': '32VNH_1'}
-    })
-
-
-eop = list(result.values())[-1]
+#result = workflow.execute({
+#    tasks['LoadTask']: {'eopatch_folder': '32VNH_1'},
+#    tasks['SaveTask']: {'eopatch_folder': '32VNH_1'}
+#    })
+#eop = list(result.values())[-1]
 
 exec_args = []
 
@@ -71,8 +67,6 @@ for eopatch_name in tqdm(eopatches_list, total=len(eopatches_list)):
     single_exec_dict[tasks['SaveTask']] = dict(eopatch_folder=f'{eopatch_name}')
     exec_args.append(single_exec_dict)
 
-
-import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 MAX_WORKERS = 24
