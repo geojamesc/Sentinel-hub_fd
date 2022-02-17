@@ -48,9 +48,6 @@ positive_examples_config = SamplingConfig(
 eopatches_paths = prepare_eopatches_paths(positive_examples_config)
 #eopatches_paths = ['input-data/eopatches/32VNH']
 
-len(eopatches_paths)
-
-
 process_fn = partial(sample_patch, sampling_config=positive_examples_config)
 
 _ = multiprocess(process_fun=process_fn, arguments=eopatches_paths, max_workers=24)
