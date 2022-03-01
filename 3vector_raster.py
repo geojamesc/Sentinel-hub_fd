@@ -38,8 +38,8 @@ gsaa_to_eops_config = GsaaToEopatchConfig(
     extent_feature=(FeatureType.MASK_TIMELESS, 'EXTENT'),
     boundary_feature=(FeatureType.MASK_TIMELESS, 'BOUNDARY'),
     distance_feature=(FeatureType.DATA_TIMELESS, 'DISTANCE'),
-    height=1200,
-    width=1200
+    height=1508,
+    width=1508
 )
 
 grid_definition = gpd.read_file(INPUT_DATA_DIR/'cyl-grid-definition.gpkg')
@@ -66,7 +66,6 @@ for eopatch_name in tqdm(eopatches_list, total=len(eopatches_list)):
     single_exec_dict[tasks['LoadTask']] = dict(eopatch_folder=f'{eopatch_name}')
     single_exec_dict[tasks['SaveTask']] = dict(eopatch_folder=f'{eopatch_name}')
     exec_args.append(single_exec_dict)
-
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 MAX_WORKERS = 24
