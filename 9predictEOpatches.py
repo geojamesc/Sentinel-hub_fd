@@ -50,12 +50,12 @@ prediction_config = PredictionConfig(
     feature_boundary=(FeatureType.DATA, f'BOUNDARY_PREDICTED_{model_version}'),
     feature_distance=(FeatureType.DATA, f'DISTANCE_PREDICTED_{model_version}'),
     model_path=os.path.realpath('input-data/niva-cyl-models'),
-    model_name='resunet-a_avg_2022-02-10-10-20-29',  #this is difft every time we run 8trainFromCache.py
+    model_name='resunet-a_avg_2022-02-28-12-00-29',  #this is difft every time we run 8trainFromCache.py
     model_version=model_version,
     temp_model_path='',  # JRCC - we already have model held locally so not used
     normalise='to_medianstd',
-    height=1122,
-    width=1122,
+    height=1508,
+    width=1508,
     n_channels=4,
     n_classes=2,
     metadata_path=os.path.realpath('input-data/patchlet-info.csv'),
@@ -96,13 +96,15 @@ for s in status:
     print('status: ', s['status'])
 print('**************************')
 
+print('type(status):', type(status))
+print('status: ', status)
 
 status_df = pd.DataFrame(status)
-print(status_df.head())
+print('status_df:', status_df.head())
 print(len(status_df), len(status_df[status_df.status=='Success']))
 
 print('Success:')
-print(status_df[status_df.status!='Success'])
+print(status_df[status_df.status == 'Success'])
 print('**************************')
 
 # [5] Check if files have been written
@@ -112,6 +114,8 @@ pred_files = [f'BOUNDARY_PREDICTED_{model_version}.npy',
               f'DISTANCE_PREDICTED_{model_version}.npy',
               f'EXTENT_PREDICTED_{model_version}.npy']
 
+print('eopatches_folder:{0}'.format(prediction_config.eopatches_folder))
+print('eopatches_list: ', eopatches_list)
 for eopatch in tqdm(eopatches_list):
     try:
         #files = filesystem.listdir(f'{prediction_config.eopatches_folder}/{eopatch}/data/')
