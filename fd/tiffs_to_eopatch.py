@@ -53,17 +53,40 @@ class AddTimestampsUpdateTime(EOTask):
         """
         self.path = path
 
+    # def _get_valid_dates(self, tile_name: str, filename: str = 'userdata.json') -> List[datetime]:
+    #     """
+    #     :param tile_name: Name of the tile to process
+    #     :param filename: Name of the json file containing timestamps
+    #     """
+    #     filesystem, relative_path = get_base_filesystem_and_path(self.path)
+    #     full_path = fs.path.join(relative_path, tile_name, filename)
+    #
+    #     decoded_data = filesystem.readtext(full_path, encoding='utf-8')
+    #     parsed_data = json.loads(decoded_data)
+    #     dates = ast.literal_eval(parsed_data['dates'])
+    #
+    #     return dates
+
+    # JRCC based on the tile_name set dates accordingly since in our
+    # input-data we don`t have the json file
     def _get_valid_dates(self, tile_name: str, filename: str = 'userdata.json') -> List[datetime]:
         """
         :param tile_name: Name of the tile to process
         :param filename: Name of the json file containing timestamps
         """
-        filesystem, relative_path = get_base_filesystem_and_path(self.path)
-        full_path = fs.path.join(relative_path, tile_name, filename)
+        # filesystem, relative_path = get_base_filesystem_and_path(self.path)
+        # full_path = fs.path.join(relative_path, tile_name, filename)
+        #
+        # decoded_data = filesystem.readtext(full_path, encoding='utf-8')
+        # parsed_data = json.loads(decoded_data)
+        # dates = ast.literal_eval(parsed_data['dates'])
 
-        decoded_data = filesystem.readtext(full_path, encoding='utf-8')
-        parsed_data = json.loads(decoded_data)
-        dates = ast.literal_eval(parsed_data['dates'])
+        if tile_name == '32VNH_1':
+            dates = ['20190227T104019']
+        elif tile_name == '32VNH_2':
+            dates = ['20200529T102559']
+        elif tile_name == '32VNH_3':
+            dates = ['20200601T103629']
 
         return dates
 
@@ -76,8 +99,8 @@ class AddTimestampsUpdateTime(EOTask):
         :param eopatch: Name of the eopatch to process
         :param tile_name: Name of the tile to process
         """
-        #dates = self._get_valid_dates(tile_name) #Don't know the structure of the json. Why turn into literal?
-        dates = ["20190227T104019", "20200529T102559", "20200601T103629"]
+        dates = self._get_valid_dates(tile_name) #Don't know the structure of the json. Why turn into literal?
+        #dates = ["20190227T104019", "20200529T102559", "20200601T103629"]
         eopatch.timestamp = dates
         return eopatch
 
