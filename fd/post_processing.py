@@ -119,7 +119,6 @@ class TemporalMerging(EOTask):
 
     def execute(self, eopatch: EOPatch) -> EOPatch:
         features = []
-
         for i, ts in enumerate(eopatch.timestamp):
             woy = ts.isocalendar()[1]
             cc = np.mean(eopatch.mask['CLM'][i, ...])
@@ -128,6 +127,7 @@ class TemporalMerging(EOTask):
             if self.woy_start <= woy < self.woy_end and \
                     cc < self.max_cloud_coverage and valid == self.valid_data_fraction:
                 features.append(eopatch[self.feature][i, ...])
+                #print('eopatch with woy:{0}, cc:{1}, valid:{2} met specified conditions'.format(woy, cc, valid))
 
         features = np.stack(features, axis=0)
 
@@ -139,15 +139,17 @@ class TemporalMerging(EOTask):
 def get_post_processing_workflow(config: PostProcessConfig) -> LinearWorkflow:
     sh_config = set_sh_config(config)
 
-    load_task = LoadTask(path=f's3://{config.bucket_name}/{config.eopatches_folder}',
-                         features=[config.feature_extent,
-                                   config.feature_boundary,
-                                   (FeatureType.MASK, 'CLM'),
-                                   (FeatureType.MASK, 'IS_DATA'),
-                                   FeatureType.TIMESTAMP,
-                                   FeatureType.META_INFO,
-                                   FeatureType.BBOX],
-                         config=sh_config), 'Load EOPatch'
+    load_task = LoadTask(
+        #path=f's3://{config.bucket_name}/{config.eopatches_folder}',
+        path=f'{config.eopatches_folder}',
+        features=[config.feature_extent,
+                  config.feature_boundary,
+                  (FeatureType.MASK, 'CLM'),
+                  (FeatureType.MASK, 'IS_DATA'),
+                  FeatureType.TIMESTAMP,
+                  FeatureType.META_INFO,
+                  FeatureType.BBOX],
+        config=sh_config), 'Load EOPatch'
 
     merge_extent_tasks = [(TemporalMerging(feature=config.feature_extent,
                                            feature_merged=(FeatureType.DATA_TIMELESS,
@@ -173,20 +175,25 @@ def get_post_processing_workflow(config: PostProcessConfig) -> LinearWorkflow:
         scale_factor=config.scale_factor, disk_size=config.disk_size), f'Combine masks for {month}')
         for month in config.time_intervals]
 
-    save_task = SaveTask(path=f's3://{config.bucket_name}/{config.eopatches_folder}',
-                         features=[(FeatureType.DATA_TIMELESS, f'{config.feature_extent[1]}_{month}')
-                                   for month in config.time_intervals] +
-                                  [(FeatureType.DATA_TIMELESS, f'{config.feature_boundary[1]}_{month}')
-                                   for month in config.time_intervals] +
-                                  [(FeatureType.DATA_TIMELESS, f'PREDICTED_{config.model_version}_{month}')
-                                   for month in config.time_intervals],
-                         overwrite_permission=OverwritePermission.OVERWRITE_FEATURES,
-                         config=sh_config), 'Save Task'
+    save_task = SaveTask(
+        #path=f's3://{config.bucket_name}/{config.eopatches_folder}',
+        path=f'{config.eopatches_folder}',
+        features=[(FeatureType.DATA_TIMELESS, f'{config.feature_extent[1]}_{month}')
+                  for month in config.time_intervals] +
+                 [(FeatureType.DATA_TIMELESS, f'{config.feature_boundary[1]}_{month}')
+                  for month in config.time_intervals] +
+                 [(FeatureType.DATA_TIMELESS, f'PREDICTED_{config.model_version}_{month}')
+                  for month in config.time_intervals],
+        overwrite_permission=OverwritePermission.OVERWRITE_FEATURES,
+        config=sh_config), 'Save Task'
 
-    export_tasks = [(ExportToTiff(feature=(FeatureType.DATA_TIMELESS, f'PREDICTED_{config.model_version}_{month}'),
-                                  folder=f's3://{config.bucket_name}/{config.tiffs_folder}/{month}/',
-                                  image_dtype=np.float32), f'Export tiffs for {month}')
-                    for month in config.time_intervals]
+    export_tasks = [
+        (ExportToTiff(feature=(FeatureType.DATA_TIMELESS, f'PREDICTED_{config.model_version}_{month}'),
+                      #folder=f's3://{config.bucket_name}/{config.tiffs_folder}/{month}/',
+                      folder=f'{config.tiffs_folder}/{month}/',
+                      image_dtype=np.float32), f'Export tiffs for {month}')
+        for month in config.time_intervals
+    ]
 
     workflow = LinearWorkflow(load_task, *merge_extent_tasks, *merge_boundary_tasks,
                               *combine_tasks, save_task, *export_tasks)
@@ -199,7 +206,11 @@ def get_exec_args(workflow: LinearWorkflow, eopatch_list: List[str], config: Pos
     exec_args = []
     tasks = workflow.get_tasks()
 
-    load_bbox = LoadTask(path=f's3://{config.bucket_name}/{config.eopatches_folder}', features=[FeatureType.BBOX])
+    load_bbox = LoadTask(
+        #path=f's3://{config.bucket_name}/{config.eopatches_folder}',
+        path=f'{config.eopatches_folder}',
+        features=[FeatureType.BBOX]
+    )
 
     for name in tqdm(eopatch_list):
         single_exec_dict = {}
