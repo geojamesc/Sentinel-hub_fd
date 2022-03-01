@@ -111,7 +111,9 @@ def prediction_fn(eop: EOPatch, n_classes: int,
     extent_pred, boundary_pred, distance_pred = [], [], []
     metrics = []
 
-    padded = pad_array(eop[bands_feature])
+    # JRCC disable the padding by setting the buffer to zero
+    #padded = pad_array(eop[bands_feature])
+    padded = pad_array(array=eop[bands_feature], buffer=0)
 
     tanimoto_loss = get_tanimoto_loss()
     accuracy_metric = get_accuracy_metric()
@@ -144,9 +146,11 @@ def prediction_fn(eop: EOPatch, n_classes: int,
 
         extent, boundary, distance = model.net.predict(data[np.newaxis, ...], batch_size=batch_size)
 
-        extent = crop_array(extent)
-        boundary = crop_array(boundary)
-        distance = crop_array(distance)
+        # JRCC - shape of extent/boundary/distance is (1,1536,1536,2)
+        # so crop to (1,1508,1508,2) using crop_array
+        extent = crop_array(array=extent, buffer=14)
+        boundary = crop_array(array=boundary, buffer=14)
+        distance = crop_array(array=distance, buffer=14)
 
         extent_pred.append(extent)
         boundary_pred.append(boundary)
@@ -159,7 +163,12 @@ def prediction_fn(eop: EOPatch, n_classes: int,
             tmp[f'{mask_name}_loss'] = tanimoto_loss(binary_one_hot_encoder(gt[np.newaxis, ...]), pred).numpy()
             tmp[f'{mask_name}_acc'] = accuracy_metric(binary_one_hot_encoder(gt[np.newaxis, ...]), pred).numpy()
             tmp[f'{mask_name}_iou'] = iou_metric(binary_one_hot_encoder(gt[np.newaxis, ...]), pred).numpy()
-            tmp[f'{mask_name}_mcc'] = mcc_metric(binary_one_hot_encoder(gt[np.newaxis, ...]), pred).numpy()[1]
+
+            # JRCC this causes a invalid index to scalar variable.
+            #  synergise have not tweeked this line in their new code
+            #tmp[f'{mask_name}_mcc'] = mcc_metric(binary_one_hot_encoder(gt[np.newaxis, ...]), pred).numpy()[1]
+            tmp[f'{mask_name}_mcc'] = mcc_metric(binary_one_hot_encoder(gt[np.newaxis, ...]), pred).numpy()
+
 
             accuracy_metric.reset_states()
             iou_metric.reset_states()
